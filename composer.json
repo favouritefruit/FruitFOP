@@ -1,0 +1,25 @@
+{
+    "name": "favouitefruit/fop",
+    "description": "Classes for dealing with Apache FOP",
+    "keywords": ["Apache FOP", "xml", "xsl", "fo", "pdf"],
+    "homepage": "https://github.com/favouitefruit/FruitFOP",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Contributors",
+            "homepage": "https://github.com/favouitefruit/FruitFOP/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1.x-dev"
+        }
+    },
+    "autoload": {
+        "psr-0": { "FruitFOP": "lib/" }
+    }
+}
