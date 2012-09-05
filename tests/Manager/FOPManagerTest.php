@@ -7,42 +7,22 @@ class FOPManagerTest extends \PHPUnit_Framework_TestCase
     public function testCreateSource()
     {
         $mgr = $this->createFOPManager();
-        $data = new DataClass('alpha', 'beta', array('delta' => 'gamma'));
+        $data = new DataClass('alpha', new Beta(), array('delta' => 'gamma'));
 
         // test no mapping
         $source = $mgr->createSource($data);
-        $expected = <<<'EXPECTED'
-<?xml version="1.0" encoding="UTF-8"?>
-<data-class>
-    <alpha>
-        alpha
-    </alpha>
-    <beta>
-        <bravo>
-            bravo
-        </bravo>
-        <charlie>
-            charlie
-        </charlie>
-    </beta>
-    <gamma>
-        <delta>
-            gamma
-        </delta>
-    </gamma>
-</data-class>
-EXPECTED;
+        $expected =
+'<?xml version="1.0"?>
+<data-class><alpha>alpha</alpha><beta><bravo>bravo</bravo><charlie>charlie</charlie></beta><gamma><delta>gamma</delta></gamma><not-used>ever</not-used></data-class>';
 
-        $this->assertSame($expected, $source->asXML());
+        $this->assertSame($expected, trim($source->asXML()));
 
         // test mapping
         $mapping = '';
         $source = $mgr->createSource($data, $mapping);
         $expected = <<<'EXPECTED'
-<?xml version="1.0" encoding="UTF-8"?>
-<root>
-    <name>
-        alpha
+<?xml version="1.0"?>
+<root><name>alpha
     </name>
     <description>
         <title>
@@ -73,6 +53,7 @@ class DataClass
     protected $alpha;
     public $beta;
     private $gamma;
+    private $notUsed = 'ever';
 
     public function __construct($alpha, $beta, array $gamma)
     {
