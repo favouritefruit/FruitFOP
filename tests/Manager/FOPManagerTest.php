@@ -18,7 +18,7 @@ class FOPManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expected, trim($source->asXML()));
 
         // test mapping
-        $mapping = '';
+        $mapping = __DIR__ . '/../Resources/DataClass.yml';
         $source = $mgr->createSource($data, $mapping);
         $expected = <<<'EXPECTED'
 <?xml version="1.0"?>

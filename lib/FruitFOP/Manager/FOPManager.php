@@ -3,6 +3,7 @@
 namespace FruitFOP\Manager;
 
 use FruitFOP\Entity\SourceInterface;
+use Symfony\Component\Yaml\Parser;
 
 class FOPManager
 {
@@ -27,7 +28,9 @@ class FOPManager
         $extracted = $this->extractData($data);
 
         if ($map) {
+            $yaml = new Parser();
 
+            $value = $yaml->parse(file_get_contents($map));
         } else {
             $mappedData = $extracted;
             $rootName = is_object($data) ? get_class($data) : 'root';

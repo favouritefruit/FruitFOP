@@ -13,7 +13,8 @@
     ],
     "require": {
         "knplabs/gaufrette": "dev-master",
-        "php": ">=5.3.0"
+        "php": ">=5.3.0",
+        "symfony/yaml": "2.0.x-dev"
     },
     "extra": {
         "branch-alias": {
