@@ -20,26 +20,10 @@ class FOPManagerTest extends \PHPUnit_Framework_TestCase
         // test mapping
         $mapping = __DIR__ . '/../Resources/DataClass.yml';
         $source = $mgr->createSource($data, $mapping);
-        $expected = <<<'EXPECTED'
-<?xml version="1.0"?>
-<root><name>alpha
-    </name>
-    <description>
-        <title>
-            bravo
-        </title>
-        <body>
-            charlie
-        </body>
-    </description>
-    <notes>
-        <delta>
-            gamma
-        </delta>
-    </notes>
-</root>
-EXPECTED;
-        $this->assertSame($expected, $source->asXML());
+        $expected =
+'<?xml version="1.0"?>
+<data><name>alpha</name><description><title>bravo</title><body>charlie</body></description><notes><delta>gamma</delta></notes></data>';
+        $this->assertSame($expected, trim($source->asXML()));
     }
 
     protected function createFOPManager()

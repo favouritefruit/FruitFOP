@@ -1,9 +1,9 @@
 DataClass:
-    root: root
+    root: data
     fields:
         alpha: name
         beta: description
-        gamma: notes:
+        gamma: notes
 
 Beta:
     fields:

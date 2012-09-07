@@ -25,17 +25,20 @@ class FOPManager
      */
     public function createSource($data, $map = null)
     {
-        $extracted = $this->extractData($data);
-
         if ($map) {
             $yaml = new Parser();
-
-            $value = $yaml->parse(file_get_contents($map));
-        } else {
-            $mappedData = $extracted;
-            $rootName = is_object($data) ? get_class($data) : 'root';
-            $root = sprintf('<%s/>', strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $rootName)));
+            $map = $yaml->parse(file_get_contents($map));
         }
+
+        if (is_object($data)) {
+            $dataClass = get_class($data);
+            $rootName = isset($map[$dataClass]['root']) ? $map[$dataClass]['root'] : $dataClass;
+        } else {
+            $rootName = 'root';
+        }
+        $root = sprintf('<%s/>', strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $rootName)));
+
+        $mappedData = $this->extractData($data, $map);
 
         $source = new $this->sourceClass($root);
         $this->addDataToSource($mappedData, $source);
@@ -55,14 +58,18 @@ class FOPManager
         }
     }
 
-    protected function extractData($data)
+    protected function extractData($data, $map = null)
     {
         if (is_scalar($data)) {
             return (string)$data;
         }
 
         if (is_object($data)) {
+            $dataClass = get_class($data);
             $extracted = $this->objectToArray($data);
+            if (isset($map[$dataClass])) {
+                $extracted = $this->remapData($extracted, $map[$dataClass]);
+            }
         } else {
             $extracted = $data;
         }
@@ -70,10 +77,23 @@ class FOPManager
         $mapped = array();
         foreach ($extracted as $attr => $value) {
             $key = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $attr));
-            $mapped[$key] = $this->extractData($value);
+            $mapped[$key] = $this->extractData($value, $map);
         }
 
         return $mapped;
+    }
+
+    protected function remapData(array $data, array $map)
+    {
+        $remapped = array();
+        foreach ($data as $attr => $value) {
+            if (isset($map['fields'][$attr])) {
+                $mappedName = $map['fields'][$attr];
+                $remapped[$mappedName] = $value;
+            }
+        }
+
+        return $remapped;
     }
 
     protected function objectToArray($data)
