@@ -6,5 +6,5 @@ use Gaufrette\File;
 
 interface ProcessorInterface
 {
-    function generate(File $source, File $target, $type);
+    public function generate(File $xml, File $xsl, File $target, $type);
 }
