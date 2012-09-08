@@ -26,23 +26,47 @@ class LocalProcessorTest extends \PHPUnit_Framework_TestCase
         $xsl = $localFileSystem->createFile('test.xsl');
         $xsl->setContent($xslContent);
         $document = $memoryFileSystem->createFile('test.pdf');
+        $processor = new LocalProcessor($tempFolder, false);
 
-        $processor = new LocalProcessor($tempFolder);
         $processor->generate($xml, $xsl, $document, 'pdf');
-
         $this->assertTrue($this->isPdf($document->getContent()));
+        $scanTemp = scandir($tempFolder);
+        $this->assertContains('test.pdf', $scanTemp, 'the purge is turned off so the generated file should be there');
+        $this->assertContains('test.xml', $scanTemp, 'only files created by processor should be removed');
+        $this->assertContains('test.xsl', $scanTemp, 'only files created by processor should be removed');
+
+        // flush temp for next test
+        unlink($tempFolder . '/test.pdf');
+        unlink($tempFolder . '/test.xml');
 
         // test non-local Files
+        $xml = $memoryFileSystem->createFile('test.xml');
+        $xml->setContent($xmlContent);
+        $processor = new LocalProcessor($tempFolder);
 
-        // test purge
+        $processor->generate($xml, $xsl, $document, 'pdf');
+        $this->assertTrue($this->isPdf($document->getContent()));
+        $scanTemp = scandir($tempFolder);
+        $this->assertNotContains('test.pdf', $scanTemp, 'the purge is on by default, temp file should be removed');
+        $this->assertNotContains('test.xml', $scanTemp, 'xml was not local, so a temp was created and then removed during purge');
+        $this->assertContains('test.xsl', $scanTemp, 'only files created by processor should be removed');
+
+        // flush temp for next test
+        unlink($tempFolder . '/test.xsl');
+
+        $xsl->generate($xml, $xsl, $document, 'pdf');
+        $xml = $memoryFileSystem->createFile('test.xsl');
+        $xsl->setContent($xslContent);
+
+        $processor->generate($xml, $xsl, $document, 'pdf');
+        $this->assertTrue($this->isPdf($document->getContent()));
+        $this->assertNotContains('test.xsl', scandir($tempFolder), 'xsl was not local, so a temp was created and then removed during purge');
 
         $xsl->setContent('fail!');
         $this->setExpectedException(
             'RuntimeException'
         );
         $processor->generate($xml, $xsl, $document, 'pdf');
-
-
     }
 
     protected function isPdf($pdf)
