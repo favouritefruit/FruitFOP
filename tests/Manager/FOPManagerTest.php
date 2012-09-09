@@ -56,11 +56,20 @@ class FOPManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->isPdf($document->getContent()));
 
         $document = $this->mgr->generateDocument($source, 'different');
-        $this->assertSame('different.pdf', $document->getKey(), 'targetName in parameters overrides targetname in Source');
+        $this->assertSame('different.pdf', $document->getKey(), 'targetName in parameters overrides targetName in Source');
 
-        // no targetName in parameters and no targetName in Source generate id unique to host computer
+        $xslFile = $this->tempFileSystem->createFile('my-target.xsl');
+        $xslFile->setContent($xsl);
+        $source->setXsl($xslFile);
 
-        // xsl can be string or Gaufrette\File
+        $document = $this->mgr->generateDocument($source);
+        $this->assertInstanceOf('Gaufrette\File', $document, ' xsl can be string or Gaufrette\File');
+
+        $source->setTargetName(null);
+        $document1 = $this->mgr->generateDocument($source);
+        $document2 = $this->mgr->generateDocument($source);
+        $this->assertNotSame($document1->getKey(), $document2->getKey(), 'no targetName in parameters and no targetName in Source generate id unique to host computer');
+
     }
 
     public function setUp()

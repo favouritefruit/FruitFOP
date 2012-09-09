@@ -67,7 +67,7 @@ class FOPManager
     {
         $fileName = $targetName ? $targetName : ($source->getTargetName());
         if (strlen($fileName) === 0) {
-//            $fileName = uniqid(gethostname(), true);
+            $fileName = uniqid(gethostname(), true);
         }
         $fileName .= '.' . $type;
         $xml = $this->tempFileSystem->createFile($fileName . '.xml');
