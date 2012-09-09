@@ -1,34 +1,83 @@
 <?php
 
+use FruitFOP\Handler\LocalProcessor;
 use FruitFOP\Manager\FOPManager;
+use Gaufrette\Filesystem;
+use Gaufrette\Adapter\InMemory;
+use Gaufrette\Adapter\Local;
 
 class FOPManagerTest extends \PHPUnit_Framework_TestCase
 {
+    protected $mgr;
+    protected $targetFileSystem;
+    protected $tempFileSystem;
+
     public function testCreateSource()
     {
-        $mgr = $this->createFOPManager();
         $data = new DataClass('alpha', new Beta(), array('delta' => 'gamma'));
 
         // test no mapping
-        $source = $mgr->createSource($data);
+        $source = $this->mgr->createSource($data);
         $expected =
 '<?xml version="1.0"?>
 <data-class><alpha>alpha</alpha><beta><bravo>bravo</bravo><charlie>charlie</charlie></beta><gamma><delta>gamma</delta></gamma><not-used>ever</not-used></data-class>';
 
-        $this->assertSame($expected, trim($source->asXML()));
+        $this->assertSame($expected, trim($source->getXML()));
 
         // test mapping
         $mapping = __DIR__ . '/../Resources/DataClass.yml';
-        $source = $mgr->createSource($data, $mapping);
+        $source = $this->mgr->createSource($data, $mapping);
         $expected =
 '<?xml version="1.0"?>
 <data><name>alpha</name><description><title>bravo</title><body>charlie</body></description><notes><delta>gamma</delta></notes></data>';
-        $this->assertSame($expected, trim($source->asXML()));
+        $this->assertSame($expected, trim($source->getXML()));
     }
 
-    protected function createFOPManager()
+    public function testGenerateDocument()
     {
-        return new FOPManager('\FruitFOP\Entity\Source');
+        $data = array(
+            'name' => 'test',
+            'description' => 'testing the document being generated'
+        );
+        $source = $this->mgr->createSource($data, null, 'data');
+
+        $layout = __DIR__ . '/../Resources/layout.xsl';
+        $handle = fopen($layout, 'r');
+        $xsl = stream_get_contents($handle);
+        fclose($handle);
+
+        $source->setXsl($xsl);
+        $source->setTargetName('my-target');
+
+        $document = $this->mgr->generateDocument($source);
+
+        $this->assertInstanceOf('Gaufrette\File', $document);
+        $this->assertSame('my-target.pdf', $document->getKey());
+        $this->assertTrue($this->isPdf($document->getContent()));
+
+        $document = $this->mgr->generateDocument($source, 'different');
+        $this->assertSame('different.pdf', $document->getKey(), 'targetName in parameters overrides targetname in Source');
+
+        // no targetName in parameters and no targetName in Source generate id unique to host computer
+
+        // xsl can be string or Gaufrette\File
+    }
+
+    public function setUp()
+    {
+        $this->targetFileSystem = new Gaufrette\Filesystem(new Gaufrette\Adapter\InMemory());
+        $this->tempFileSystem = new Gaufrette\Filesystem(new Gaufrette\Adapter\InMemory());
+        $tempFolder = __DIR__ . '/../Resources/temp';
+        $processor = new LocalProcessor($tempFolder);
+
+        $this->mgr = new FOPManager($processor, $this->targetFileSystem, $this->tempFileSystem, '\FruitFOP\Entity\Source');
+    }
+
+    protected function isPdf($pdf)
+    {
+        $pdfHeader = "\x25\x50\x44\x46\x2D";
+
+        return strncmp($pdf, $pdfHeader, strlen($pdfHeader)) === 0 ? true : false;
     }
 }
 

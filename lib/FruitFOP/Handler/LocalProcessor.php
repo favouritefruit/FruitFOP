@@ -50,6 +50,15 @@ class LocalProcessor implements ProcessorInterface
         $process->run();
 
         if ($process->getExitCode() !== 0) {
+            if ($this->purge) {
+                foreach ($toDelete as $fileName) {
+                    try {
+                        unlink($fileName);
+                    } catch (\Exception $e) {
+                        // if a file hasn't been created, continue on
+                    }
+                }
+            }
             throw new \RuntimeException($process->getErrorOutput());
         }
 

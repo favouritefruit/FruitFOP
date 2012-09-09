@@ -3,15 +3,25 @@
 namespace FruitFOP\Manager;
 
 use FruitFOP\Entity\SourceInterface;
+use FruitFOP\Handler\ProcessorInterface;
+use Gaufrette\File;
+use Gaufrette\Filesystem;
 use Symfony\Component\Yaml\Parser;
 
 class FOPManager
 {
+    protected $adapters;
+    protected $processor;
     protected $sourceClass;
+    protected $targetFileSystem;
+    protected $tempFileSystem;
 
-    public function __construct($sourceClass)
+    public function __construct(ProcessorInterface $processor, Filesystem $targetFileSystem, Filesystem $tempFileSystem, $sourceClass)
     {
+        $this->processor = $processor;
         $this->sourceClass = $sourceClass;
+        $this->targetFileSystem = $targetFileSystem;
+        $this->tempFileSystem = $tempFileSystem;
     }
 
     /**
@@ -23,7 +33,7 @@ class FOPManager
      *
      * @return \FruitFOP\Entity\SourceInterface
      */
-    public function createSource($data, $map = null)
+    public function createSource($data, $map = null, $root = 'root')
     {
         if ($map) {
             $yaml = new Parser();
@@ -34,7 +44,7 @@ class FOPManager
             $dataClass = get_class($data);
             $rootName = isset($map[$dataClass]['root']) ? $map[$dataClass]['root'] : $dataClass;
         } else {
-            $rootName = 'root';
+            $rootName = $root;
         }
         $root = sprintf('<%s/>', strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $rootName)));
 
@@ -44,6 +54,34 @@ class FOPManager
         $this->addDataToSource($mappedData, $source);
 
         return $source;
+    }
+
+    /**
+     * @param \FruitFOP\Entity\SourceInterface $source
+     * @param null $targetLocation
+     * @param string $type
+     *
+     * @return \Gaufrette\File
+     */
+    public function generateDocument(SourceInterface $source, $targetName = null, $type = 'pdf')
+    {
+        $fileName = $targetName ? $targetName : ($source->getTargetName());
+        if (strlen($fileName) === 0) {
+//            $fileName = uniqid(gethostname(), true);
+        }
+        $fileName .= '.' . $type;
+        $xml = $this->tempFileSystem->createFile($fileName . '.xml');
+        $xml->setContent($source->getXml());
+        $xsl = $source->getXsl();
+        if (!$xsl instanceof File) {
+            $content = $xsl;
+            $xsl = $this->tempFileSystem->createFile($fileName . '.xsl');
+            $xsl->setContent($content);
+        }
+        $document = $this->targetFileSystem->createFile($fileName);
+        $this->processor->generate($xml, $xsl, $document, $type);
+
+        return $document;
     }
 
     protected function addDataToSource(array $data, $source)
@@ -109,10 +147,5 @@ class FOPManager
         }
 
         return $extracted;
-    }
-
-    public function generateDocument(SourceInterface $source, $targetLocation = null, $type = 'pdf')
-    {
-
     }
 }
