@@ -21,12 +21,26 @@ class LocalProcessor implements ProcessorInterface
     public function generate(File $xml, File $xsl, File $target, $type)
     {
         $targetFile = rtrim($this->tempFolder, '/ ') . '/' . $target->getKey();
+        $toDelete = array($targetFile);
 
         // if the xml or xsl are not on host, move them here
-        $adapter = $xml->getFilesystem()->getAdapter();
-
-        $xmlFile = $adapter->computePath($xml->getKey());
-        $xslFile = $adapter->computePath($xsl->getKey());
+        $xmlAdapter = $xml->getFilesystem()->getAdapter();
+        if ($xmlAdapter instanceof Local) {
+            $xmlFile = $xmlAdapter->computePath($xml->getKey());
+        } else {
+            $xmlFile = $targetFile . '.xml';
+            file_put_contents($xmlFile, $xml->getContent());
+            $toDelete[] = $xmlFile;
+        }        
+        
+        $xslAdapter = $xsl->getFilesystem()->getAdapter();
+        if ($xslAdapter instanceof Local) {
+            $xslFile = $xslAdapter->computePath($xsl->getKey());
+        } else {
+            $xslFile = $targetFile . '.xsl';
+            file_put_contents($xslFile, $xsl->getContent());
+            $toDelete[] = $xslFile;
+        }
 
         $fopCmd = __DIR__ . '/../Resources/fop-1.0/fop';
 
@@ -43,5 +57,11 @@ class LocalProcessor implements ProcessorInterface
         $documentContents = stream_get_contents($handle);
         fclose($handle);
         $target->setContent($documentContents);
+
+        if ($this->purge) {
+            foreach ($toDelete as $fileName) {
+                unlink($fileName);
+            }
+        }
     }
 }

@@ -54,8 +54,7 @@ class LocalProcessorTest extends \PHPUnit_Framework_TestCase
         // flush temp for next test
         unlink($tempFolder . '/test.xsl');
 
-        $xsl->generate($xml, $xsl, $document, 'pdf');
-        $xml = $memoryFileSystem->createFile('test.xsl');
+        $xsl = $memoryFileSystem->createFile('test.xsl');
         $xsl->setContent($xslContent);
 
         $processor->generate($xml, $xsl, $document, 'pdf');
