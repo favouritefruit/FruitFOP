@@ -46,7 +46,7 @@ class FOPManager
         } else {
             $rootName = $root;
         }
-        $root = sprintf('<%s/>', strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $rootName)));
+        $root = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $rootName));
 
         $mappedData = $this->extractData($data, $map);
 

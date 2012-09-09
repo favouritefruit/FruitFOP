@@ -11,8 +11,9 @@ class Source implements SourceInterface
     protected $xml;
     protected $xsl;
 
-    public function __construct($root)
+    public function __construct($root = 'root')
     {
+        $root = '<'. $root. '/>';
         $this->xml = new \SimpleXMLElement($root);
     }
 
