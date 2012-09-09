@@ -1,0 +1,11 @@
+DataClass:
+    root: data
+    fields:
+        alpha: name
+        beta: description
+        gamma: notes
+
+Beta:
+    fields:
+        bravo: title
+        charlie: body
