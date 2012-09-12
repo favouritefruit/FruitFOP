@@ -35,7 +35,7 @@ class FOPManager
      */
     public function createSource($data, $map = null, $root = 'root')
     {
-        if ($map) {
+        if ($map && !is_array($map)) {
             $yaml = new Parser();
             $map = $yaml->parse(file_get_contents($map));
         }
