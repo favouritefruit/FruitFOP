@@ -38,6 +38,9 @@ class FOPManager
         if ($map) {
             $yaml = new Parser();
             $map = $yaml->parse(file_get_contents($map));
+            $mapFields = array_shift($map)['fields'];
+        } else {
+            $mapFields = null;
         }
 
         if (is_object($data)) {
@@ -48,7 +51,7 @@ class FOPManager
         }
         $root = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $rootName));
 
-        $mappedData = $this->extractData($data, $map);
+        $mappedData = $this->extractData($data, $mapFields);
 
         $source = new $this->sourceClass($root);
         $this->addDataToSource($mappedData, $source);
@@ -98,8 +101,16 @@ class FOPManager
 
     protected function extractData($data, $map = null)
     {
+        if ($data ===  null) {
+            return '';
+        }
+
         if (is_scalar($data)) {
             return (string)$data;
+        }
+
+        if ($data instanceof \DateTime) {
+            return $data->format('Y-m-d');
         }
 
         if (is_object($data)) {
@@ -114,8 +125,14 @@ class FOPManager
 
         $mapped = array();
         foreach ($extracted as $attr => $value) {
-            $key = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $attr));
-            $mapped[$key] = $this->extractData($value, $map);
+            if (isset($map[$attr])) {
+                if (is_array($map[$attr])) {
+                    $root = $map[$attr]['root'];
+                    $mapped[$root] = $this->extractData($value, $map[$attr]['fields']);
+                } else {
+                    $mapped[$map[$attr]] = $this->extractData($value);
+                }
+            }
         }
 
         return $mapped;
