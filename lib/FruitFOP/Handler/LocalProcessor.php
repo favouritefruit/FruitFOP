@@ -23,24 +23,13 @@ class LocalProcessor implements ProcessorInterface
         $targetFile = rtrim($this->tempFolder, '/ ') . '/' . $target->getKey();
         $toDelete = array($targetFile);
 
-        // if the xml or xsl are not on host, move them here
-        $xmlAdapter = $xml->getFilesystem()->getAdapter();
-        if ($xmlAdapter instanceof Local) {
-            $xmlFile = $xmlAdapter->computePath($xml->getKey());
-        } else {
-            $xmlFile = $targetFile . '.xml';
-            file_put_contents($xmlFile, $xml->getContent());
-            $toDelete[] = $xmlFile;
-        }        
-        
-        $xslAdapter = $xsl->getFilesystem()->getAdapter();
-        if ($xslAdapter instanceof Local) {
-            $xslFile = $xslAdapter->computePath($xsl->getKey());
-        } else {
-            $xslFile = $targetFile . '.xsl';
-            file_put_contents($xslFile, $xsl->getContent());
-            $toDelete[] = $xslFile;
-        }
+        $xmlFile = $targetFile . '.xml';
+        file_put_contents($xmlFile, $xml->getContent());
+        $toDelete[] = $xmlFile;
+
+        $xslFile = $targetFile . '.xsl';
+        file_put_contents($xslFile, $xsl->getContent());
+        $toDelete[] = $xslFile;
 
         $fopCmd = __DIR__ . '/../Resources/fop-1.0/fop';
 
