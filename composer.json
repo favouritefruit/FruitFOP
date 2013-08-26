@@ -1,5 +1,5 @@
 {
-    "name": "favouitefruit/fop",
+    "name": "favouritefruit/fop",
     "description": "Classes for dealing with Apache FOP",
     "keywords": ["Apache FOP", "xml", "xsl", "fo", "pdf"],
     "homepage": "https://github.com/favouitefruit/FruitFOP",
