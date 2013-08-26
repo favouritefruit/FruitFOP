@@ -31,6 +31,29 @@ class FOPManagerTest extends \PHPUnit_Framework_TestCase
 '<?xml version="1.0"?>
 <data><name>alpha</name><description><title>bravo</title><body>charlie</body></description><notes><delta>gamma</delta></notes></data>';
         $this->assertSame($expected, trim($source->getXML()));
+
+        // test mapping with array
+        $mapping = array(
+            'DataClass' => array(
+                'root' => 'base',
+                'fields' => array(
+                    'alpha' => 'group',
+                    'beta'  => 'sets',
+                    'gamma' => 'extra',
+                ),
+            ),
+            'Beta' => array(
+                'fields' => array(
+                    'bravo'   => 'first',
+                    'charlie' => 'second',
+                ),
+            ),
+        );
+        $source = $this->mgr->createSource($data, $mapping);
+        $expected =
+            '<?xml version="1.0"?>
+<base><group>alpha</group><sets><first>bravo</first><second>charlie</second></sets><extra><delta>gamma</delta></extra></base>';
+        $this->assertSame($expected, trim($source->getXML()));
     }
 
     public function testGenerateDocument()
@@ -69,7 +92,6 @@ class FOPManagerTest extends \PHPUnit_Framework_TestCase
         $document1 = $this->mgr->generateDocument($source);
         $document2 = $this->mgr->generateDocument($source);
         $this->assertNotSame($document1->getKey(), $document2->getKey(), 'no targetName in parameters and no targetName in Source generate id unique to host computer');
-
     }
 
     public function setUp()

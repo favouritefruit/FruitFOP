@@ -19,6 +19,9 @@ class LocalProcessorTest extends \PHPUnit_Framework_TestCase
         fclose($handle);
 
         $tempFolder = __DIR__ . '/../Resources/temp';
+        if (!file_exists($tempFolder)) {
+            mkdir($tempFolder, 0777, true);
+        }
         $localFileSystem = new Filesystem(new Local($tempFolder));
         $memoryFileSystem = new Filesystem(new InMemory());
         $xml = $localFileSystem->createFile('test.xml');
@@ -66,6 +69,8 @@ class LocalProcessorTest extends \PHPUnit_Framework_TestCase
             'RuntimeException'
         );
         $processor->generate($xml, $xsl, $document, 'pdf');
+
+        rmdir($tempFolder);
     }
 
     protected function isPdf($pdf)
